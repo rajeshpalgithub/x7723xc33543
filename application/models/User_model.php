@@ -467,7 +467,7 @@ class User_model extends CI_Model
 	
 function change_password($parameters=array('new_password','old_password'))
 {
-	$error = true;
+	$error = false;
 	$errortext ="";
 	$result = array();
 

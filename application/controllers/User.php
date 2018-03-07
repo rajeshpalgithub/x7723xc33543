@@ -864,13 +864,13 @@ function change_password_put()
 		{
 			$input_data=$check_input['result']['input_array'];
 
-			//$activation_result=$this->User_model->activate_user($input_data);
-			if(!$activation_result['error'])
+			$change_password_result=$this->User_model->change_password($input_data);
+			if(!$change_password_result['error'])
 			{
-				//$result = $activation_result['result'];
+				$result = $change_password_result['result'];
 			}else{
 				$error = true;
-				$errorText .=$activation_result['errortext'];
+				$errorText .=$change_password_result['errortext'];
 			}
 
 		}else{
@@ -884,7 +884,9 @@ function change_password_put()
 	{
 		$error =  true;
 		$errortext .=$e->getMessage();
+		$response_code = 400;
 	}
+	$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
 }
 
 

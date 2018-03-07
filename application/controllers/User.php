@@ -21,6 +21,7 @@ class User extends REST_Controller {
 			'employee_permission_methods'=>array('GET'=>array(3)),
 			'employee_active'=>array('GET'=>array(3)),
 			'employee_report_to'=>array('GET'=>array(3)),
+			'activate_post'=>array('POST'=>array(3)),
 			'get_method_list'=>array('GET'=>array("a")),
 		);	
 
@@ -524,8 +525,8 @@ public function index_delete()
 }
 
 
-	public function user_permission_methods_get()
-	{
+public function user_permission_methods_get()
+{
 		$error =  false;
 		$errorText = '';
 		$result = '';
@@ -789,3 +790,42 @@ public function index_delete()
 	
 	
 }
+
+function activate_post() // activate user
+{
+	
+	$error =  false;
+	$errorText = '';
+	$result = '';
+	$response_code = 200;
+	try
+	{
+		$userdata=json_decode(file_get_contents('php://input'));
+		if(!is_object($userdata))
+		{
+			$userdata =(object)$this->post();
+		}
+		
+		$input_array=array(
+		  'email'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['email']),
+		  'auth_code'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+		);
+		
+		$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+		if(!$check_input['error'])
+		{
+			$post_data=$check_input['result']['input_array'];
+		}else{
+			$error =  true;
+			$errorText .=  $check_input['errortext'].'<br>';
+			
+		}
+	}catch(Exception $e)
+	{
+		$error =  true;
+		$errorText .=  $e->getMessage();
+	}
+	$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+}
+
+

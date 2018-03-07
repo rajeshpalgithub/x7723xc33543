@@ -6,8 +6,10 @@ class Basic_model extends CI_Model
  public $unique_id='';
  public $sub_unique_id=0;
  public $role='';
+ public $role_name='';
  public $short_name='';
  public $operator_name='';
+ public $user_id ='';
  public $token_id='';
  public $timezone='';
  public $dateformat='';
@@ -66,10 +68,14 @@ class Basic_model extends CI_Model
    {
 	   $login_details=$login_response['result']['login_details'];
 	   $this->token_id=$login_details['token_id'];
+	   ///////////////////////
 	   $this->login_data=$login_details['user_name'];
+	   ////////////////////////////
+	   $this->user_id = $login_details['user_id'];
 	   $this->unique_id=$login_details['client_id'];
 	   $this->sub_unique_id=$login_details['user_id'];
 	   $this->role=$login_details['login_role'];
+	   $this->role_name = $login_details['login_name'];
 	   $this->operator_name=($login_details['login_role']==3 ?'Client':'Customer');  
 	   $this->short_name=$login_details['business_short_name'];
    }

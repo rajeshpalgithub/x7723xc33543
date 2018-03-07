@@ -88,11 +88,12 @@ class Login_model extends CI_Model
 			 );
                
 			 $this->db->trans_start();
-			 $this->db->where('email',$email)->where('activation_code',$auth_code)->update('login',$login_data);
+			 $this->db->where('email',$email)->where('activation_code',$auth_code)
+			 ->where('role',3)->update('login',$login_data);
 			 
 			 if($this->db->affected_rows())
 			 {      
-				$this->db->where('email',$email)->update('login',array('activation_code'=>''));
+				$this->db->where('email',$email)->where('role',3)->update('login',array('activation_code'=>''));
 				$subject="New Password";
 				$message="
 					<html>
@@ -541,7 +542,7 @@ class Login_model extends CI_Model
         'activation_code' => $auth_code,
 	);
 	$this->db->trans_start();
-	$this->db->where('email', $email)->update('login', $update_data);
+	$this->db->where('email', $email)->where('role',3)->update('login', $update_data);
 	
 	if($this->db->affected_rows())
 	{

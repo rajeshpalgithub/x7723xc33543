@@ -421,6 +421,30 @@ class User_model extends CI_Model
 		}
 		return $return_is_success;
 	}
+
+	function activate_user($parameters=array('email','auth_code'))
+	{
+		$error =  false;
+		$errortext="";
+		$result=array();
+
+		$email = $parameters['email'];
+		$auth_code = $parameters['auth_code'];
+
+		$login_update_array=array(
+			'login_is_active'=>1,
+			
+		);
+
+		$this->db->trans_start();
+		$this->db->where('activation_code',$auth_code)
+		->where('email',$email)
+		->where('role',3)
+		->update('login',$login_update_array);
+		$this->db->trans_complete();
+
+
+	}
 	
 }
 

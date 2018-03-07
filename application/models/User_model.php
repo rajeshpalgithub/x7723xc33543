@@ -325,8 +325,8 @@ class User_model extends CI_Model
 					'message'=>"
 						<html>
 							<body>
-								<h1>Welcome to Urcib Crm</h1>
-								<p  text-aling=\"center\">Verify your account</p>
+								<h1 align=\"center\">Welcome to Urcib Crm</h1>
+								<p  aling=\"center\">Verify your account</p>
 								<p>
 									Your Login email id: $user_email,<br>
 									Login password: $password, <br>
@@ -337,7 +337,7 @@ class User_model extends CI_Model
 						</html>
 					
 					",
-					'subject'=>"Welcome to Urcib Crm",
+					'subject'=>"Welcome to Urcib Crm:Verify your account",
 				);
 				$email_response = $this->Common_model->send_email($email);
 				$result['successMessage'] = "User registration successfull";
@@ -437,14 +437,86 @@ class User_model extends CI_Model
 		);
 
 		$this->db->trans_start();
+
 		$this->db->where('activation_code',$auth_code)
 		->where('email',$email)
 		->where('role',3)
 		->update('login',$login_update_array);
+
+		if($this->db->affected_rows())
+		{
+			$this->db
+			->where('email',$email)
+			->where('role',3)
+			->update('login',array('activation_code'=>''));
+
+			$result['successMessage']="User has been activated.";
+
+
+		}else{
+			$error = true;
+			$errortext = "User not found or User already active.";
+		}
+
 		$this->db->trans_complete();
 
 
 	}
+	
+function change_password($parameters=array('new_password','old_password'))
+{
+	$error = true;
+	$errortext ="";
+	$result = array();
+
+	$new_password = md5($parameters['new_password']);
+	$old_password = md5($parameters['old_password']);
+	$login_id = $this->Basic_model->login_id;
+
+	$password_update_array =  array(
+		'password'=>$new_password,
+
+	);
+
+	$this->db->where('id',$login_id)
+	->where('password',$old_password)
+	->update('login',$password_update_array);
+
+	if($this->db->affected_rows())
+	{
+		// send alert email
+		$user_email = $this->Common_model->get_single_field_value('login','email','id',$login_id);
+
+		$result['successMessage']="Password has been updated successfully.";
+		$this->load->model('Common_model');
+				$mail_content = array(
+					'email'=>$email,
+					'message'=>"
+						<html>
+							<body>
+								
+								<p>Your password has been updated successfully.</p>
+								
+							</body>
+						
+						</html>
+					
+					",
+					'subject'=>"Password update",
+				);
+		$email_response = $this->Common_model->send_email($mail_content);
+
+
+
+	}else{
+		$error = true;
+		$errortext .= "Old password is not matching.";
+	}
+
+	
+
+
+}
 	
 }
 

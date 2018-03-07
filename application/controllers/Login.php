@@ -160,25 +160,49 @@ class Login extends REST_Controller {
 			
 			$input_array=array(
 			  'email'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['email']),
+			  'auth_code'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
 			);
 			
 			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
 			if(!$check_input['error'])
 			{
 				$post_data=$check_input['result']['input_array'];
-				$login_data=$this->Login_model->SendUpdatePassword($post_data);
-				if(!$login_data['error'])
-				   {
-					   $result['successMessage']=$login_data['result']['successMessage'];
-					   $result['new_pass']=$login_data['result']['new_pass'];
-					  
-				   }
-				   else
-				   {
-					   $error =  true;
-					   $errorText .=  $login_data['errortext'].'<br>';
-					   $result['new_pass']=$login_data['result']['new_pass'];
-				   }
+				// send authentication code to user email then send updated password
+
+				$auth_code = $post_data['auth_code'];
+				$email = $post_data['email'];
+				
+				if(!empty($auth_code))
+				{
+					// send updated password its 2nd stapte
+					$login_data=$this->Login_model->SendUpdatePassword($post_data);
+					if(!$login_data['error'])
+					{
+						$result['successMessage']=$login_data['result']['successMessage'];
+						// $result['new_pass']=$login_data['result']['new_pass'];
+						
+					}
+					else
+					{
+						$error =  true;
+						$errorText .=  $login_data['errortext'].'<br>';
+						// $result['new_pass']=$login_data['result']['new_pass'];
+					}
+
+				}else{
+					// send auth code first it's first stape
+					$auth_code_result = $this->Login_model->sendAuthCode($post_data);
+					if(!$auth_code_result['error'])
+					{
+						$result = $auth_code_result['result'];
+					}else{
+						$error = true;
+						$errorText .= $auth_code_result['errortext'];
+					}
+
+
+				}
+				
 				
 			}
 			else
@@ -194,6 +218,7 @@ class Login extends REST_Controller {
 		{
 			$error = true;
 			$errortext = $e->getMessage();
+			$response_code=400;
 		}
 		
 		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);

@@ -110,6 +110,7 @@ class Basic_model extends CI_Model
 	'2digit'=>'(0[1-9]|1[0-2])\/[0-9]{2}',
 	'varchar250'=>'/^.{250,}$/',
 	'phone'=>'/^\d{10}$/',
+	
 	);
  
  }	

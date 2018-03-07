@@ -77,25 +77,32 @@ class Login_model extends CI_Model
 	 try
 	 {
 		 $email=$post_data['email'];
-		 $rs=$this->db->select('*')->where('email',$email)->get('login');
-		 if($rs->num_rows()>0)
-		 {
-			 $login_array=$rs->row_array();
-			 $client_id=$login_array['unique_id'];
-			 
+		 $auth_code = $post_data['auth_code'];
+		
+		
+			
 			 $new_password=$this->randomString();
 			
 			 $login_data=array(
 				'password'=>md5($new_password),
 			 );
                
-			 $success=$this->db->where('email',$email)->update('login',$login_data);
-			 if($success)
+			 $this->db->trans_start();
+			 $this->db->where('email',$email)->where('activation_code',$auth_code)->update('login',$login_data);
+			 
+			 if($this->db->affected_rows())
 			 {      
-			    $client_name=$this->Common_model->get_single_field_value('school','name','id',$client_id);
-				$subject="New Password for $client_name";
-				$message="<b>Name</b> :".$client_name.'<br/>'.
-				"<b>New Password</b>: ".$new_password.'<br/>';
+				$this->db->where('email',$email)->update('login',array('activation_code'=>''));
+				$subject="New Password";
+				$message="
+					<html>
+						<body>
+							<p>Hi, You have requested new password here is new password bellow</p>
+							<p>New Password: $new_password</p>
+						</body>
+					</html>
+				
+				";
 				
 				$send_email_array=array(
 				  'subject'=>$subject,
@@ -106,8 +113,8 @@ class Login_model extends CI_Model
 				$send_email_array=$this->Common_model->send_email($send_email_array);
 				if(!$send_email_array['error'])
 				{
-					$result['new_pass']=$new_password;
-					$result['successMessage']='Email send successfully';
+					
+					$result['successMessage']='New password has been sent to your email id.';
 				}
 				else
 				{
@@ -115,14 +122,16 @@ class Login_model extends CI_Model
              		$errortext =$send_email_array['errortext'];
 				}
 					
-					
+			 }else{
+				 $error = true;
+				 $errortext ="Incorrect authentication code.";
 			 }
-		 }
-		 else
-		 {
-			 $error = true;
-             $errortext = 'Email id not found';
-		 }
+			 $this->db->trans_complete();
+			 if ($this->db->trans_status() === FALSE)
+			 {
+				$error = true;
+             	$errortext ="Can't perform opetation now, Please try again.";
+			 }
 		 
 	 }
 	 catch(Exception $e)
@@ -518,7 +527,58 @@ class Login_model extends CI_Model
 	 }
 	 return $field_data;
  }
- 	
+
+ function sendAuthCode($parameters=array('email'))
+ {
+	$error= false;
+	$errortext = "";
+	$result = array();
+
+	$email = $parameters['email'];
+	// generate auth code
+	$auth_code = rand(999,9999);
+	$update_data = array(
+        'activation_code' => $auth_code,
+	);
+	$this->db->trans_start();
+	$this->db->where('email', $email)->update('login', $update_data);
+	
+	if($this->db->affected_rows())
+	{
+		
+		$this->load->model('Common_model');
+				$mail_content = array(
+					'email'=>$email,
+					'message'=>"
+						<html>
+							<body>
+								
+								<p  aling=\"center\">Your forgot password authentication code bellow</p>
+								<p>
+									Auth Code: $auth_code
+								</p>
+							</body>
+						
+						</html>
+					
+					",
+					'subject'=>"Forgot password auth code",
+				);
+		$email_response = $this->Common_model->send_email($mail_content);
+		$result['successMessage'] = "Authentication code sent to your register email id.";
+		$result['email'] = $email;
+	}else{
+		$error = true;
+		$errortext .= "Incorrect email id";
+	}
+	$this->db->trans_complete();
+	if ($this->db->trans_status() === FALSE)
+	{
+		$error = true;
+		$errortext .= "Can't perform operation now, Please try again.";
+	}
+	return array('error'=>$error,'errortext'=>$errortext,'result'=>$result);
+ }
 	
 }
 ?>

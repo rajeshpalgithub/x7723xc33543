@@ -13,7 +13,7 @@ class Menu extends REST_Controller {
 		//$this->load->model('Login_model');
 		//$this->load->model('School_role_model');
 		
-	    $error=false;
+	   /* $error=false;
 		$response_code='';
 		$errortext='';
 	
@@ -32,10 +32,23 @@ class Menu extends REST_Controller {
 		if($error)
 		{
 			$this->response(array('error'=>$error,'errortext'=>$errortext), $response_code);
-		}
+		}*/
 
-		
+		$this->check_permission=array(
+			'get_method_list'=>array('GET'=>array("a")),
+			'index'=>array('GET'=>array(3,4)),
+		);
+
     }
+
+	function get_method_list_get()
+	{
+		
+		$data['method_list']=get_class_methods($this);
+		$data['module_id']=$this->Common_model->get_single_field_value('module','id','class_name','menu');
+		$this->response($data);
+		
+	}
 
 	public function index_get()
 	{

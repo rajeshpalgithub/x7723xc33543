@@ -135,8 +135,8 @@ class Client_model extends CI_Model
 						'message'=>"
 							<html>
 								<body>
-									<h1>Welcome to Urcib Crm</h1>
-									<p  text-aling=\"center\">Verify your account</p>
+									<h1 align=\"center\" >Thanks for signing up with Urcib Crm!</h1>
+									<p aling=\"center\">Verify your account</p>
 									<p>
 										Your Login email id: $client_email,<br>
 										Login password: $password, <br>
@@ -147,7 +147,7 @@ class Client_model extends CI_Model
 							</html>
 						
 						",
-						'subject'=>"Welcome to Urcib Crm",
+						'subject'=>"Welcome to Urcib Crm:Verify your account",
 					);
 					$email_response = $this->Common_model->send_email($email);
 					$result['successMessage'] = "User registration successfull";

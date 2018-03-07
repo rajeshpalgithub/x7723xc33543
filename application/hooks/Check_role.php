@@ -13,89 +13,18 @@ class Check_role
 			    $this->CI =& get_instance();
 			    $controller=$this->CI;
 				
-				if($controller->Basic_model->token_id!="")
-				{
-					if($controller->Basic_model->unique_id!="")
-					{
-						
-						$check_active_client=$controller->Basic_model->check_active_client($controller->Basic_model->unique_id);
-						
-						if($check_active_client['error'])
-						{
-							$error=true;
-							$errortext=$check_active_client['errortext'];
-							$response_code='401';
-						}
-						
-					
-						if(!$error)
-						{
-							$authentication=$controller->Basic_model->session_exp();
-							if($authentication['error'])
-							{
-							  $login_data=$controller->Login_model->logout_user(); 
-							  $error=true;
-							  $errortext=$authentication['errortext'];
-							  $response_code='401';
-							}
-						}
-						
-				
-						
-						/*if(!$error)
-						{
-						   $authentication=$controller->Basic_model->authentication('School');
-						   if($authentication['error'])
-						   {
-							  $login_data=$controller->Login_model->logout_user(); 
-							  $error=true;
-							  $errortext=$authentication['errortext'];
-							  $response_code='401';
-						   }
-						}*/
-					
-					}
-				}
-				else
-				{
-					
-					if($controller->Basic_model->x_api_key!="")
-					{
-						$authentication=$controller->Basic_model->get_api_key();
-						
-						if($authentication['error'])
-						{
-						  //$login_data=$controller->Login_model->logout_user(); 
-						  $error=true;
-						  $errortext=$authentication['errortext'];
-						  $response_code='401';
-						}
-					}
-					/*else
-					{
-						$error=true;
-						$errortext='Unauthorised access';
-						$response_code='401';
-					}*/
-					
-				}
-				
-				
-				if(!$error)
-				{
-					   $fetch_method=$controller->router->fetch_method();
-					
 						if(isset($controller->check_permission))
 						{
 							/// write block of code or any method that will check if incoming method name exist in this class if exit then what is permission
 							$skip_parameter=false;
-							$check_permission=$controller->check_permission;
+							$skip_parameter=$controller->Basic_model->CheckSkipMethod($controller->check_permission);
 
-							$skip_parameter=$controller->Basic_model->CheckSkipMethod($check_permission);
+							
 
 							if(!$skip_parameter)
 							{
-								if($controller->Basic_model->token_id!="")
+								
+								if(!$controller->Basic_model->error)
 								{
 									$class_permission=$controller->Basic_model->CheckClassPermission();
 									
@@ -105,6 +34,10 @@ class Check_role
 										$errortext=$class_permission['errortext'];
 										$response_code='401';
 									}
+								}else{
+									$error=true;
+									$errortext= $controller->Basic_model->errortext;
+									$response_code=401;
 								}
 								
 								if(!$error)
@@ -168,7 +101,7 @@ class Check_role
 												}
 											}
 										 break;
-												}
+										}
 									}
 								
 								}
@@ -177,28 +110,7 @@ class Check_role
 							}
 						}
 					
-				}
-				
-				
-				
-				/*if(!$error)
-				{
-				   if($controller->Basic_model->sub_unique_id!="")
-				   {
-					    $role_permission_array['sub_unique_id']=$controller->Basic_model->sub_unique_id;
-						$role_permission_array['unique_id']=$controller->Basic_model->unique_id;
-						$role_permission_array['role']=$controller->Basic_model->role;
-						$result=$controller->Common_model->get_role_permission($role_permission_array);
-						$response=$controller->Common_model->permission_url($result,$controller->uri->uri_string(),$controller->input->method(TRUE));
-						if(!$response)
-						{
-							$response_code='401';
-							$error=true;
-							$errortext='Unauthorised access';
-						}
-				   }
-				}*/
-				
+			
 				
 			
 		  }
@@ -206,6 +118,7 @@ class Check_role
 		  {
 			 $error = true;
 			 $errortext = $e->getMessage();
+			 $response_code = 400;
 		  }
 		  
 	

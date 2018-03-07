@@ -788,11 +788,7 @@ public function user_permission_methods_get()
 		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
 	}
 
-	
-	
-}
-
-function activate_post() // activate user
+public function activate_post() // activate user
 {
 	
 	$error =  false;
@@ -839,7 +835,7 @@ function activate_post() // activate user
 	$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
 }
 
-function change_password_put()
+public function change_password_put()
 {
 	$error =  false;
 	$errorText = '';
@@ -888,5 +884,9 @@ function change_password_put()
 	}
 	$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
 }
+	
+}
+
+
 
 

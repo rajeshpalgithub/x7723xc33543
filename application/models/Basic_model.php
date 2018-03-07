@@ -10,6 +10,7 @@ class Basic_model extends CI_Model
  public $short_name='';
  public $operator_name='';
  public $user_id ='';
+ public $login_id = "";
  public $token_id='';
  public $timezone='';
  public $dateformat='';
@@ -72,6 +73,7 @@ class Basic_model extends CI_Model
 	   $this->login_data=$login_details['user_name'];
 	   ////////////////////////////
 	   $this->user_id = $login_details['user_id'];
+	   $this->login_id =  $login_details['login_id'];
 	   $this->unique_id=$login_details['client_id'];
 	   $this->sub_unique_id=$login_details['user_id'];
 	   $this->role=$login_details['login_role'];

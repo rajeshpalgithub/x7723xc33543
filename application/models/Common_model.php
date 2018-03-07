@@ -78,6 +78,10 @@ class Common_model extends CI_Model
 	  {
 		  $module_query ="AND method.module_id=(SELECT id FROM module WHERE class_name='$module')";
 	  }
+	  if($parent_id=='')
+	  {
+		$parent_id = 0;
+	  }
 	  
 	  $check_active=$this->db->select('*')->where('id',$unique_id)->where('Is_active',1)->get('school');
 	  if($check_active->num_rows()>0)

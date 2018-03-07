@@ -149,7 +149,7 @@ class Login extends REST_Controller {
 		$error =  false;
 		$errorText = '';
 		$result = '';
-		$response_code = '';
+		$response_code = 200;
 		try
 		{
 			$userdata=json_decode(file_get_contents('php://input'));
@@ -171,7 +171,7 @@ class Login extends REST_Controller {
 				   {
 					   $result['successMessage']=$login_data['result']['successMessage'];
 					   $result['new_pass']=$login_data['result']['new_pass'];
-					   $response_code='200';
+					  
 				   }
 				   else
 				   {
@@ -185,7 +185,7 @@ class Login extends REST_Controller {
 			{
 				$error =  true;
 				$errorText .=  $check_input['errortext'].'<br>';
-				$response_code='400';
+				$response_code=400;
 			}
 			
 			

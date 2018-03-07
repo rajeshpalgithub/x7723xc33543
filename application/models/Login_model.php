@@ -291,17 +291,16 @@ class Login_model extends CI_Model
 	  $unique_text=$post_data['unique_text'];
 	  $password=md5($post_data['password']);
 	  
-	  if($this->Basic_model->login_data)
+	  /*if($this->Basic_model->login_data)
 	   {
 		 if($this->Basic_model->login_data!="")
 		 {	
 		    $error=true;
 			$errortext .= 'You are already login';
 		 }
-	  }
+	   }*/
 	 
-	 if(!$error)
-	 {
+	
 		//$client_id=$this->Basic_model->unique_id; 
 	    /*$sql="SELECT * FROM login WHERE email='$unique_text' AND password='$password'";
 	    $rs=$this->db->query($sql);*/
@@ -323,6 +322,7 @@ class Login_model extends CI_Model
 		 ->join('sub_role_details','sub_role_details.sub_role_details_login_id = login.id')
 		 ->join('role_master','role_master.id = sub_role_details.role_master_id')
 		 ->where('login.email',$unique_text)->where('login.password',$password)->get();
+		
 		
 		
 		 if($rs->num_rows()>0)
@@ -389,7 +389,7 @@ class Login_model extends CI_Model
 			$error = true;
             $errortext = 'Invalid credentials';
 		 }
-	   }
+	   
 	 }
 	 catch(Exception $e)
 	 {

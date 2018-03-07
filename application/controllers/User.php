@@ -861,6 +861,7 @@ public function change_password_put()
 			$input_data=$check_input['result']['input_array'];
 
 			$change_password_result=$this->User_model->change_password($input_data);
+			
 			if(!$change_password_result['error'])
 			{
 				$result = $change_password_result['result'];

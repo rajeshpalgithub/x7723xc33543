@@ -7,10 +7,13 @@ class Basic_model extends CI_Model
  public $sub_unique_id=0;
  public $role='';
  public $role_name='';
- public $short_name='';
+ public $business_short_name='';
+ public $business_name='';
  public $operator_name='';
- public $user_id ='';
+ public $user_id =''; 
  public $login_id = "";
+ public $customer_id = "";
+ 
  public $token_id='';
  public $timezone='';
  public $dateformat='';
@@ -21,6 +24,10 @@ class Basic_model extends CI_Model
  public $mysql_input_dateformat='';
  public $mysql_input_dateRgxp='';
  public $regularexp=array();
+
+ public $error=false;
+ public $errortext='';
+ public $response_code='';
  
  public $image_link='';
  
@@ -29,22 +36,9 @@ class Basic_model extends CI_Model
   parent::__construct();
   $this->load->model('Common_model');
   
-  /*if($this->session->userdata('login_name'))
-  {
-	if($this->session->userdata('login_name')!="")
-	{
-	  $this->login_data=$this->session->userdata('login_name');
-	  $this->unique_id=$this->session->userdata('unique_id');
-	  $this->sub_unique_id=$this->session->userdata('sub_unique_id');
-	  $this->role=$this->session->userdata('role');
-	  $this->operator_name=$this->session->userdata('operator_name');  
-	  $this->short_name=$this->Common_model->get_single_field_value('school','short_name','id',$this->unique_id);
-	}
-   }*/
+
    
-    $db_api_response=$this->get_api_key();
-	
-	
+    /*$db_api_response=$this->get_api_key();
 	
 	if($this->token_id=="")
 	{
@@ -60,32 +54,17 @@ class Basic_model extends CI_Model
 			 $this->x_api_key=$db_api_response['result']['x_api_key'];
 		}
 		
-	}
-   
-  $login_response=$this->get_login_details();
-  $this->image_link=base_url();
+	}*/
+
+	$this->image_link=base_url();
+  	$login_response=$this->get_login_details();
   
-   if(!$login_response['error'])
+  
+   if($login_response['error'])
    {
-	   $login_details=$login_response['result']['login_details'];
-	   $this->token_id=$login_details['token_id'];
-	   ///////////////////////
-	   $this->login_data=$login_details['user_name'];
-	   ////////////////////////////
-	   $this->user_id = $login_details['user_id'];
-	   $this->login_id =  $login_details['login_id'];
-	   $this->unique_id=$login_details['client_id'];
-	   $this->sub_unique_id=$login_details['user_id'];
-	   $this->role=$login_details['login_role'];
-	   $this->role_name = $login_details['role_name'];
-	   $this->operator_name=($login_details['login_role']==3 ?'Client':'Customer');  
-	   $this->short_name=$login_details['business_short_name'];
-   }
-   else
-   {
-	   $error=true;
-	   $response_code='401';
-	   $errortext=$login_response['errortext'];
+	   $this->error=true;
+	   $this->response_code=401;
+	   $this->errortext=$login_response['errortext'];
    }
    
    
@@ -140,7 +119,7 @@ public function check_role_permission()
 	{
 		$error=true;
 		$response_code='401';
-		$errortext='Unauthorised access';
+		$errortext='Unauthorised role';
 		$result='';
 	}
 	
@@ -150,7 +129,7 @@ public function check_role_permission()
 		{
 			$error=true;
 			$response_code='401';
-			$errortext='Unauthorised access';
+			$errortext='Unauthorised role permission access';
 			$result='';
 		}
 	}
@@ -256,7 +235,7 @@ public function get_login_details()
 {
 	$error=false;
 	$errortext='';
-	$result='';
+	$result=array();
 	
 	
 	$auth_key=0;
@@ -282,11 +261,13 @@ public function get_login_details()
 	{
 		$x_api_key="";
 	}
+
+	
 	
 
-	if($user_request_authkey!="")
+	if($user_request_authkey!="" && $x_api_key=="")
 	{
-		//$check_auth_key=$this->db->select('*')->where('token_id',$user_request_authkey)->order_by('token_id','desc')->get('db_session');
+		// for clients and it's users
 		
 		
 		$rs=$this->db->select('login.id as login_id')
@@ -314,37 +295,28 @@ public function get_login_details()
 			$autologin_details=$rs->row_array();
 			
 			
+			//print_r($autologin_details);
+			//exit();
 			
-			
+
 			if($autologin_details['login_is_active'])
 			{
 				
 				/********************************************/
 				
-				$result['login_details']=$autologin_details;
-				$result['auth_token']=$user_request_authkey;
-				$unique_id=$autologin_details['client_id'];
-				
-				
-				
-				if($x_api_key!="")
-				{
-					$rs=$this->db->select('*')->where('client_id',$unique_id)->where('key',$x_api_key)->get('keys');
-					//echo $this->db->last_query();
-					//die();
-					if(!$rs->num_rows()>0)
-					{
-						$error=true;
-						$errortext='Invalid API-KEY';
-					}
-					else
-					{
-						$this->x_api_key=$x_api_key;
-					}
-				
-				}
-				
-				$result['x_api_key']=$x_api_key;
+				$this->token_id=$autologin_details['token_id'];
+				///////////////////////
+				$this->login_data=$autologin_details['user_name'];
+				////////////////////////////
+				$this->user_id = $autologin_details['user_id'];
+				$this->login_id =  $autologin_details['login_id'];
+				$this->unique_id = $autologin_details['client_id'];
+				$this->sub_unique_id = $autologin_details['user_id'];
+				$this->role = $autologin_details['login_role'];
+				$this->role_name = $autologin_details['role_name'];
+				$this->operator_name ="Client";  
+				$this->business_short_name =$autologin_details['business_short_name'];
+				$this->business_name =$autologin_details['business_name'];
 				
 				
 				/******************************************/
@@ -361,16 +333,83 @@ public function get_login_details()
 			$errortext='Session expired';
 			
 		}
+	}else if($user_request_authkey=="" && $x_api_key!="")
+	{
+		// for guest user
+		$rs=$this->db->select('keys.id as key_id')
+		->select('keys.is_private_key')
+		->select('keys.client_id as key_client_id')
+		->select('keys.ip_address as key_ip_address')
+		->select('keys.ip_address as key_ip_address')
+		->select('school.logo as business_logo')
+		->select('school.name as business_name')
+		->select('school.short_name as business_short_name')
+		->select('school.school_logo as business_logo')
+
+		->from('keys')
+		->join('school','school.id = keys.client_id')
+		->where('keys.key',$x_api_key)
+		->where('school.is_active',1)
+		->get();
+					
+		if(!$rs->num_rows()>0)
+		{
+			$error =true;
+			$errortext .='Invalid API-KEY';
+		}
+		else
+		{
+			$access_end_point = $this->input->ip_address();
+			$api_key_data=$rs->row_array();
+			if($api_key_data['is_private_key'])
+			{
+				if($access_end_point != $api_key_data['key_ip_address'])
+				{
+					$error = true;
+					$errortext .="Unauthrozie browsing endpoint <br>"; 
+				}
+			}else{
+				$this->unique_id = $api_key_data['key_client_id'];
+				$this->business_short_name =$api_key_data['business_short_name'];
+				$this->business_name =$api_key_data['business_name'];
+				$this->business_logo =$api_key_data['business_logo'];
+				$this->operator_name ="Guest User";
+			}
+		}
+
+	}else if( $user_request_authkey !="" && $x_api_key !="" )
+	{
+		/************* this section needs to work  *****/
+		/* related tables:
+			keys,school,db_sesion,customer
+		*/
+		//client loggedin customer
+		$rs=$this->db->select('keys.id as key_id')
+		->select('keys.is_private_key')
+		->select('keys.client_id as key_client_id')
+		->select('keys.ip_address as key_ip_address')
+		->select('keys.ip_address as key_ip_address')
+		->select('school.logo as business_logo')
+		->select('school.name as business_name')
+		->select('school.short_name as business_short_name')
+		->select('school.school_logo as business_logo')
+		->select('')
+
+		->from('keys')
+		->join('school','school.id = keys.client_id')
+		->join('db_session','db_session.db_session_login_id = login.id')
+		->where('db_session.token_id',$user_request_authkey)
+		->where('keys.key',$x_api_key)
+		->where('school.is_active',1)
+		->get();
+
 	}
 	else
 	{
 		$error=true;
-		$errortext='Auth-Token not found';
+		$errortext='Auth-Token or Api-Key not found';
 	}
 	
-
-	
-		
    return array('error' => $error, 'errortext' => $errortext, 'result' => $result);		
 }
  
@@ -699,7 +738,7 @@ function buildTree(array $elements, $parentId = 0) {
 	 if(!$check_auth->num_rows()>0)
 	 {
 		$error=true;
-		$errortext='Unauthorised access';
+		$errortext='Unauthorised module access';
 	 }
 	 
 	 if(!$error)
@@ -710,7 +749,7 @@ function buildTree(array $elements, $parentId = 0) {
 			if($client_product_type==2)
 			{
 				$error=true;
-				$errortext='Unauthorised access';
+				$errortext='Unauthorised offrent access';
 			}
 		}
 	 }

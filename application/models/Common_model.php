@@ -100,7 +100,9 @@ class Common_model extends CI_Model
 		  AND sub_role_details.is_active=1 
 		  AND role_master.is_active=1 
 		  AND role_master.object_id=$unique_id";		  
-	
+		
+		  print_r($sql);
+		  exit();
 		 $rs=$this->db->query($sql);
 	
 		 $url_details=array();
@@ -109,7 +111,7 @@ class Common_model extends CI_Model
 			  $module_method_array=$rs->result_array();
 			  foreach($module_method_array as $row)
 			  {
-				 $url="";
+				
 				 $url= $row['method_name'];
 				 $url_details[]=array(
 				   'display_name'=>$row['method_description'],

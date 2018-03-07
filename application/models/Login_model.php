@@ -315,6 +315,7 @@ class Login_model extends CI_Model
 		 ->select('sub_role_details.name as user_name')
 		 ->select('school.name as business_name')
 		 ->select('school.short_name as business_short_name')
+		 ->select('school.school_logo as business_logo')
 		 ->select('role_master.role_name as role_name')
 		 
 		 ->from('login')
@@ -335,6 +336,7 @@ class Login_model extends CI_Model
 				  $user_name = $user_data['user_name'];
 				  $business_name = $user_data['business_name'];
 				  $business_short_name = $user_data['business_short_name'];
+				  $business_logo = $user_data['business_logo'];
 				  $user_is_active = $user_data['login_is_active'];
 				  
 				  $hash_algorithm = 'sha256';
@@ -379,6 +381,7 @@ class Login_model extends CI_Model
 				  $result['business_short_name']= $business_short_name;
 				  $result['user_is_active']= $user_is_active;
 				  $result['user_image']= '';
+				  $result['business_logo'] = '';
 				   
 			  
 			 

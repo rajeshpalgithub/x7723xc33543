@@ -77,7 +77,7 @@ class Basic_model extends CI_Model
 	   $this->unique_id=$login_details['client_id'];
 	   $this->sub_unique_id=$login_details['user_id'];
 	   $this->role=$login_details['login_role'];
-	   $this->role_name = $login_details['login_name'];
+	   $this->role_name = $login_details['role_name'];
 	   $this->operator_name=($login_details['login_role']==3 ?'Client':'Customer');  
 	   $this->short_name=$login_details['business_short_name'];
    }
@@ -293,6 +293,7 @@ public function get_login_details()
 			->select('login.role as login_role')
 			->select('login.login_is_active')
 			->select('school.id as client_id')
+			->select('db_session.token_id')
 		
 		 ->select('sub_role_details.id as user_id')
 		 ->select('sub_role_details.name as user_name')

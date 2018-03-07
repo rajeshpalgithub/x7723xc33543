@@ -492,7 +492,7 @@ function change_password($parameters=array('new_password','old_password'))
 		$result['successMessage']="Password has been updated successfully.";
 		$this->load->model('Common_model');
 				$mail_content = array(
-					'email'=>$email,
+					'email'=>$user_email,
 					'message'=>"
 						<html>
 							<body>
@@ -506,19 +506,16 @@ function change_password($parameters=array('new_password','old_password'))
 					",
 					'subject'=>"Password update",
 				);
-		$email_response = $this->Common_model->send_email($mail_content);
+			$email_response = $this->Common_model->send_email($mail_content);
 
+		}else{
+			$error = true;
+			$errortext .= "Old password is not matching.";
+		}
 
+		return array('error'=>$error,'errortext'=>$errortext,'result'=>$result);
 
-	}else{
-		$error = true;
-		$errortext .= "Old password is not matching.";
 	}
-
-	
-
-
-}
 	
 }
 

@@ -22,6 +22,7 @@ class User extends REST_Controller {
 			'employee_active'=>array('GET'=>array(3)),
 			'employee_report_to'=>array('GET'=>array(3)),
 			'activate_post'=>array('POST'=>array(3)),
+			'change_password'=>array('PUT'=>array(3,4)),
 			'get_method_list'=>array('GET'=>array("a")),
 		);	
 
@@ -815,6 +816,16 @@ function activate_post() // activate user
 		if(!$check_input['error'])
 		{
 			$post_data=$check_input['result']['input_array'];
+
+			$activation_result=$this->User_model->activate_user($post_data);
+			if(!$activation_result['error'])
+			{
+				$result = $activation_result['result'];
+			}else{
+				$error = true;
+				$errorText .=$activation_result['errortext'];
+			}
+
 		}else{
 			$error =  true;
 			$errorText .=  $check_input['errortext'].'<br>';
@@ -826,6 +837,54 @@ function activate_post() // activate user
 		$errorText .=  $e->getMessage();
 	}
 	$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+}
+
+function change_password_put()
+{
+	$error =  false;
+	$errorText = '';
+	$result = '';
+	$response_code = 200;
+	try
+	{
+		$userdata=json_decode(file_get_contents('php://input'));
+		if(!is_object($userdata))
+		{
+			$userdata =(object)$this->put();
+		}
+		
+		$input_array=array(
+		  'new_password'=>array('required'=>1,'exp'=>''),
+		  'old_password'=>array('required'=>1,'exp'=>''),
+		  
+		);
+		$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+
+		if(!$check_input['error'])
+		{
+			$input_data=$check_input['result']['input_array'];
+
+			//$activation_result=$this->User_model->activate_user($input_data);
+			if(!$activation_result['error'])
+			{
+				//$result = $activation_result['result'];
+			}else{
+				$error = true;
+				$errorText .=$activation_result['errortext'];
+			}
+
+		}else{
+			$error =  true;
+			$errorText .=  $check_input['errortext'].'<br>';
+			
+		}
+
+
+	}catch(Exception $e)
+	{
+		$error =  true;
+		$errortext .=$e->getMessage();
+	}
 }
 
 

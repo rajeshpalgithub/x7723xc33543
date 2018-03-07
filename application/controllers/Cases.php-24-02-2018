@@ -1,0 +1,90 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+require APPPATH . '/libraries/REST_Controller.php';
+
+class Cases extends REST_Controller {
+	function __construct() {
+		
+        parent::__construct();
+		
+		$this->load->model('Basic_model');
+		$this->load->model('Rest_model');
+		$this->load->model('Case_model');
+		
+		
+		$this->check_permission=array(
+			'get_method_list'=>array('GET'=>array("a")),
+			'index'=>array('GET'=>array(3),'POST'=>array(3),'PUT'=>array(3),'DELETE'=>array(3)),
+		);
+	}
+	function get_method_list_get()
+	{
+		
+		$data['method_list']=get_class_methods($this);
+		$data['module_id']=$this->Common_model->get_single_field_value('module','id','class_name','cases');
+		$this->response($data);
+		
+	}
+	function index_get()
+	{
+		/*
+			this method return all cases of a client, it takes parameters for shorting,
+			Input Parameters: 
+			"account_id" for listing all case againest a customer(account_id).
+			"page" 
+			"records"
+			
+		*/
+		$error =  false;
+		$errortext = '';
+		$result = array();
+		$response_code = 200;
+		$out_json=array(
+			'cases'=>'cases','records'=>'records','total_records'=>'total_records'
+		);
+		try{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->get();
+			}
+			
+			$input_array=array(
+			  'account_id'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'page'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['not_zero']),
+			  'records'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$query=$check_input['result']['input_array'];
+				
+			}else{
+				$error = true;
+				$errortext = $check_input['errortext'];
+			}
+			if(!$error)
+			{
+				$cases = $this->Case_model->getCases($query);;
+				$result[$out_json['cases']]=$cases;
+				$result[$out_json['records']]=count($cases);
+				$result[$out_json['total_records']]=100;
+				
+			}
+			
+		}catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+			$response_code = 400;
+		}
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errortext,"<br>")),'result'=>$result),$response_code);
+			
+			
+	}
+	
+	
+}
+?>

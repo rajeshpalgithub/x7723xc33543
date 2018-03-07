@@ -1,0 +1,113 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+class Account_model extends CI_Model
+{
+	
+	private $page_default =0;
+	private $records_default =20;
+	
+	function __construct() {
+		$this->load->model('Tables_model');
+		$this->load->model('Login_model');
+	}
+	/*function __get($variable)
+	{
+		return $this->$variable;
+	}*/
+
+	
+	function getAccounts($parameters)
+	{
+		$accounts= array(
+			'account_id'=>'id',
+			'account_name'=>'name',
+			'account_email'=>'email',
+			'account_phone_no'=>'phone_no',
+			'account_is_active'=>'is_active',
+
+		);
+
+		 $customer_list=array();
+		 $client_id= $this->Basic_model->unique_id;
+		 $page = $parameters['page'];
+		 $records= $parameters['records'];
+		 $account_name = $parameters['account_name'];
+		 if($page=='')
+		 {
+			 	$page = $this->page_default;
+		 }
+		 if($records=='' || $records > 20)
+		 {
+			 $records=$this->records_default;
+		 }
+		 
+		 
+		 if($account_name!='')
+		 {
+		 	
+
+		 	$rs=$this->db->select($this->Tables_model->account)
+		 					->where($this->Tables_model->account['client_id'],$client_id)
+							->like($this->Tables_model->account['account_name'], $account_name)
+							->or_like($this->Tables_model->account['account_phone'], $account_name)
+							->or_like($this->Tables_model->account['account_email'], $account_name)
+							->order_by($this->Tables_model->account['account_id'], 'DESC')
+							->get($this->Tables_model->tables['account_table']);
+		 }else{
+			 $rs=$this->db->select($this->Tables_model->account)
+			 			->where($this->Tables_model->account['client_id'],$client_id)
+			 			->order_by($this->Tables_model->account['account_id'], 'DESC')
+						->get($this->Tables_model->tables['account_table'],$records,$page-1);
+		 }
+		
+		 
+		 if($rs->num_rows()>0)
+		 {
+			  $customer_arr=$rs->result_array();
+			  foreach($customer_arr as $item)
+			  {
+				  $id=$item['id'];
+				  $email=$this->Login_model->get_employee_login_data('email',$id);
+				  $phone_no=$this->Login_model->get_employee_login_data('phone_no',$id);
+				  $customer_list[]=array(
+					 $accounts['account_id']=>$item['id'],
+					 $accounts['account_name']=>$item['name'],
+					 $accounts['account_email']=>$email,
+					 $accounts['account_phone_no']=>$phone_no,
+					 $accounts['account_is_active']=>$item['is_active']
+				  );
+			  }
+		 }
+		 
+		 return $customer_list;
+	}
+	function getTotalRecords($parameters)
+	{
+		print_r($this->Tables_model->select('account',array('account_id','account_name')));
+		//$rs=$this->db->select($this->Tables_model->select('account','*'))->where($this->Tables_model->account('client_id'),5);
+		
+		//print_r($rs->result_array());
+		//print_r( $this->Tables_model->tables2['account_table']['table_columns']);
+		exit();
+
+		$client_id= $this->Basic_model->unique_id;
+		 $account_name = $parameters['account_name'];
+		 if($account_name!='')
+		 {
+		 	return $this->db
+		 			->where($this->Tables_model->account['client_id'],$client_id)
+		 			->like($this->Tables_model->account['account_name'], $account_name)
+					->or_like($this->Tables_model->account['account_phone'], $account_name)
+					->or_like($this->Tables_model->account['account_email'], $account_name)
+		 			->from($this->Tables_model->tables['account_table'])
+		 			->count_all_results();
+		 }else{
+		 	return $this->db
+		 			->where($this->Tables_model->account['client_id'],$client_id)
+		 			->from($this->Tables_model->tables['account_table'])
+		 			->count_all_results();
+		 }
+	}
+}
+?>

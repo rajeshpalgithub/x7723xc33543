@@ -1,0 +1,130 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+class Tables_model extends CI_Model
+{
+	private $tables = array('account_table'=>'account',
+							'case_table'=>'case',
+							'login_table'=>'login',);
+	private $account=array('account_id'=>'id',
+	 						'account_name'=>'name',
+	 						'client_id'=>'client_id',
+	 						'account_type_id'=>'type_id',
+	 						'account_email'=>'email',
+	 						'account_phone'=>'phone',
+	 						'account_role_id'=>'role_id',
+	 						'account_auth_code'=>'auth_code',
+	 						'account_description'=>'description',
+	 						'account_is_active'=>'is_active',
+	 						'account_add_date_time'=>'add_date_time',);
+	
+	private $tables2 = array(
+			'account'=>array(
+				'table_name'=>'account',
+				'columns'=>array(
+									'account_id'=>array('column_name'=>'id',
+										'meta_data'=>array('data_type'=>'int(11)','is_read_only'=>TRUE,'required'=>TRUE)
+									),
+									'account_name'=>array('column_name'=>'name',
+										'meta_data'=>array('data_type'=>'varchar(250)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'client_id'=>array('column_name'=>'client_id',
+										'meta_data'=>array('data_type'=>'int(11)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_type_id'=>array('column_name'=>'type_id',
+										'meta_data'=>array('data_type'=>'int(11)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_email'=>array('column_name'=>'email',
+										'meta_data'=>array('data_type'=>'varchar(250)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_phone'=>array('column_name'=>'phone',
+										'meta_data'=>array('data_type'=>'varchar(11)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_description'=>array('column_name'=>'description',
+										'meta_data'=>array('data_type'=>'text(450)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_is_active'=>array('column_name'=>'is_active',
+										'meta_data'=>array('data_type'=>'int(1)','is_read_only'=>false,'required'=>TRUE)
+									),
+									'account_add_date_time'=>array('column_name'=>'add_date_time',
+										'meta_data'=>array('data_type'=>'int(1)','is_read_only'=>true,'required'=>TRUE)
+									),
+									'account_auth_code'=>array('column_name'=>'auth_code',
+										'meta_data'=>array('data_type'=>'varchar(250)','is_read_only'=>true,'required'=>TRUE)
+									),
+								)
+
+			),
+
+	);
+	function __get($table)
+	{
+		return $this->$table;
+	}
+
+	public function __call($table,$argument)
+	{
+		$columns = array();
+		
+		$table_columns = $this->tables2[$table]['columns'];
+		switch($argument)
+		{
+			case '*' : 
+				
+				foreach($table_columns as $key => $value)
+				{
+					$columns[$key] = $value['column_name'];
+				}
+				
+			break;
+			default :
+				
+				//$query_columns=explode(',',(string)$argument);
+				foreach($table_columns as $key => $value)
+				{
+					if(in_array($key,$argument)){
+						$columns[$key] = $value['column_name'];
+					}
+				}
+				
+
+		}
+		return $columns;
+	}
+
+	public function select($table,$argument)
+	{
+		$columns = array();
+
+		$table_columns = $this->tables2[$table]['columns'];
+		switch($argument)
+		{
+			case '*' : 
+				
+				foreach($table_columns as $key=>$value)
+				{
+					$columns[$key] = $value['column_name'];
+					//array_push($columns,$string);
+					
+				}
+				
+			break;
+			default :
+				
+				//$query_columns=explode(',',(string)$argument);
+				
+				foreach($table_columns as $key => $value)
+				{
+					
+					if(in_array($key,$argument)){
+						$columns[$key] = $value['column_name'];
+					}
+				}
+				
+
+		}
+		return $columns;
+	}
+	
+}
+?>

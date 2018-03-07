@@ -1,0 +1,842 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+require APPPATH . '/libraries/REST_Controller.php';
+
+class Orders extends REST_Controller {
+	
+	function __construct() {
+        parent::__construct();
+		$this->load->model('Rest_model');
+		$this->load->model('Basic_model');
+		$this->load->model('Common_model');
+		$this->load->model('Login_model');
+		$this->load->model('Sop_model');
+		$this->load->library('cart');
+		
+	    $error=false;
+		$response_code='';
+		$errortext='';
+	
+	
+		$role_permission_array['sub_unique_id']=$this->Basic_model->sub_unique_id;
+		$role_permission_array['unique_id']=$this->Basic_model->unique_id;
+		$role_permission_array['role']=$this->Basic_model->role;
+		$result=$this->Common_model->get_role_permission($role_permission_array);
+		$response=$this->Common_model->permission_url($role_permission_array,$result,$this->uri->uri_string(),$this->input->method(TRUE));
+		if(!$response)
+		{
+			$error=true;
+			$response_code='401';
+			$errortext='Unauthorised access';
+		}
+		
+		if($error)
+		{
+			$this->response(array('error'=>$error,'errortext'=>$errortext), $response_code);
+		}
+
+		
+    }
+	
+	public function master_order_status_get()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->get();
+			}
+			
+			$order_status=$this->Sop_model->GetMasterStatusDetails();
+			if(!empty($order_status))
+			{
+			   $result=$order_status;
+			   $response_code='200';
+			}
+			else
+			{
+			   $error =  true;
+			   $errorText .='No record found'.'<br>';
+			}
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+
+	public function master_order_status_post()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->post();
+			}
+			
+			$input_array=array(
+			  'status'=>array('required'=>1,'exp'=>''),
+			  'is_changeable'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['boolean']),
+			  'is_active'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['boolean']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				 $post_data=$check_input['result']['input_array'];
+				 $insert_response=$this->Sop_model->InsertMasterOrderStatus($post_data);
+			     if(!$insert_response['error'])
+				 {
+				   $status_list=$this->Sop_model->GetMasterStatusDetails();	
+				   $result['successMessage']=$insert_response['result']['successMessage'];
+				   $result['status_list']=$status_list;
+				   $response_code='200';
+				 }
+				else
+				{
+				   $error =  true;
+				   $errorText .= $insert_response['errortext'].'<br>';
+				}
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	public function master_order_status_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->put();
+			}
+			
+			$input_array=array(
+			  'status_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'status'=>array('required'=>1,'exp'=>''),
+			  'is_changeable'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['boolean']),
+			  'is_active'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['boolean']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				 $post_data=$check_input['result']['input_array'];
+				 $update_response=$this->Sop_model->UpdateMasterOrderStatus($post_data);
+			     if(!$update_response['error'])
+				 {
+				   $status_list=$this->Sop_model->GetMasterStatusDetails();	
+				   $result['successMessage']=$update_response['result']['successMessage'];
+				   $result['status_list']=$status_list;
+				   $response_code='200';
+				 }
+				else
+				{
+				   $error =  true;
+				   $errorText .= $update_response['errortext'].'<br>';
+				}
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	
+	public function order_status_get()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->get();
+			}
+			
+			$order_status=$this->Sop_model->GetOrderStatusDetails();
+			if(!empty($order_status))
+			{
+			   $result=$order_status;
+			   $response_code='200';
+			}
+			else
+			{
+			   $error =  true;
+			   $errorText .='No record found'.'<br>';
+			}
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	public function order_status_post()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->post();
+			}
+			
+			$input_array=array(
+			  'employee_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'status_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				 $post_data=$check_input['result']['input_array'];
+				 $insert_response=$this->Sop_model->InsertOrderStatus($post_data);
+			     if(!$insert_response['error'])
+				 {
+				   $status_list=$this->Sop_model->GetOrderStatusDetails();	
+				   $result['successMessage']=$insert_response['result']['successMessage'];
+				   $result['status_list']=$status_list;
+				   $response_code='200';
+				 }
+				else
+				{
+				   $error =  true;
+				   $errorText .= $insert_response['errortext'].'<br>';
+				}
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	public function order_status_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->put();
+			}
+			
+			$input_array=array(
+			  'order_status_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'employee_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'status_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				 $post_data=$check_input['result']['input_array'];
+				 $insert_response=$this->Sop_model->UpdateOrderStatus($post_data);
+			     if(!$insert_response['error'])
+				 {
+				   $status_list=$this->Sop_model->GetOrderStatusDetails();	
+				   $result['successMessage']=$insert_response['result']['successMessage'];
+				   $result['status_list']=$status_list;
+				   $response_code='200';
+				 }
+				else
+				{
+				   $error =  true;
+				   $errorText .= $insert_response['errortext'].'<br>';
+				}
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	public function index_get()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$invoice_id='';
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->get();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'start_date'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['date']),
+			  'end_date'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['date']),
+			  'search_cat'=>array('required'=>0,'exp'=>''),
+			  'search_text'=>array('required'=>0,'exp'=>''),
+			  'page'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'row'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$invoice_id=$post_data['invoice_id'];
+				
+				$start_date=$post_data['start_date'];
+				$end_date=$post_data['end_date'];
+				
+				if($this->input->get('start_date') && isset($start_date))
+				{
+					if($end_date=="")
+					{
+						$error =  true;
+				        $errorText .= 'End date required'.'<br>';
+					}
+				}
+				
+				$page=$post_data['page'];
+				$row=$post_data['row'];
+				
+				if($page < 0)
+				{
+					$error=true;
+					$errorText='Page number must be greater than zero';
+				}
+				
+				if($post_data['search_cat']!="")
+				{
+					if($post_data['search_text']=="")
+					{
+						$error=true;
+					    $errorText='Search text required';
+					}
+				}
+				
+				if($page=="")
+				{
+					$page=1;
+				}
+				
+				if($row=="")
+				{
+					$row=20;
+				}
+				
+				$per_page=$row;
+                $offset = (($page - 1) * $row);
+				
+			}
+
+			if(!$error)
+			{
+				if($invoice_id=="")
+				{
+					$order_data=$this->Sop_model->GetProductOrderDetails($offset,$per_page);
+					$result['page']=$page;
+					$result['records']=count($order_data);
+					$result['order_list']=$order_data;
+				}
+				else
+				{
+					$order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+					$result['order_details']=$order_data;
+				}
+				
+				
+				if(!empty($order_data))
+				   {
+					   
+					   $response_code='200';
+				   }
+				   else
+				   {
+					   $error =  true;
+					   $errorText .= 'No record found'.'<br>';
+				   }
+			}
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}
+	
+	
+	/*public function index_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$invoice_id='';
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->get();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'start_date'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['date']),
+			  'end_date'=>array('required'=>0,'exp'=>$this->Basic_model->regularexp['date']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$invoice_id=$post_data['invoice_id'];
+				
+				$start_date=$post_data['start_date'];
+				$end_date=$post_data['end_date'];
+				
+				if($this->input->get('start_date') && isset($start_date))
+				{
+					if($end_date=="")
+					{
+						$error =  true;
+				        $errorText .= 'End date required'.'<br>';
+					}
+				}
+			}
+			
+			
+			
+			if(!$error)
+			{
+				if($invoice_id=="")
+				{
+					$order_data=$this->Sop_model->GetProductOrderDetails();
+					$result['order_list']=$order_data;
+				}
+				else
+				{
+					$order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+					$result['order_details']=$order_data;
+				}
+				
+				
+				if(!empty($order_data))
+				   {
+					   
+					   $response_code='200';
+				   }
+				   else
+				   {
+					   $error =  true;
+					   $errorText .= 'No record found'.'<br>';
+				   }
+			}
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	}*/
+	
+	public function in_complete_qty_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->put();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'sku_name'=>array('required'=>1,'exp'=>''),
+			  'qty'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$insert_response=$this->Sop_model->InCompleteOrderUpdateQty($post_data);
+   			    if($insert_response['error'])
+			     {
+				    $error=true;
+					$errorText=$insert_response['errortext'];
+			     }
+			     else
+			     {
+				   $invoice_id=$post_data['invoice_id'];
+				   $order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+				   $result['successMessage']='Data successfully updated';
+				   $result['order_details']=$order_data;
+				   $response_code='200';
+			     }
+				
+				
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	
+	}
+	
+	public function in_complete_price_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->put();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'start_date'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['date']),
+			  'end_date'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['date']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$insert_response=$this->Sop_model->InCompleteOrderUpdatePriceByDate($post_data);
+   			    if($insert_response['error'])
+			     {
+				    $error=true;
+					$errorText=$insert_response['errortext'];
+			     }
+			     else
+			     {
+				   $invoice_id=$post_data['invoice_id'];
+				   $order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+				   $result['successMessage']='Data successfully updated';
+				   $result['order_details']=$order_data;
+				   $response_code='200';
+			     }
+				
+				
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	
+	}
+	
+	public function in_complete_post()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->post();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'sku_name'=>array('required'=>1,'exp'=>''),
+			  'qty'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$insert_response=$this->Sop_model->InCompleteOrderNewProduct($post_data);
+   			    if($insert_response['error'])
+			     {
+				    $error=true;
+					$errorText=$insert_response['errortext'];
+			     }
+			     else
+			     {
+				   $invoice_id=$post_data['invoice_id'];
+				   $order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+				   $result['successMessage']='Data successfully inserted';
+				   $result['order_details']=$order_data;
+				   $response_code='200';
+			     }
+				
+				
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	
+	}
+	
+	
+	public function in_complete_delete()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->delete();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'sku_name'=>array('required'=>1,'exp'=>''),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$insert_response=$this->Sop_model->InCompleteOrderDeleteProduct($post_data);
+   			    if($insert_response['error'])
+			     {
+				    $error=true;
+					$errorText=$insert_response['errortext'];
+			     }
+			     else
+			     {
+				   $invoice_id=$post_data['invoice_id'];
+				   $order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+				   $result['successMessage']='Data successfully inserted';
+				   $result['order_details']=$order_data;
+				   $response_code='200';
+			     }
+				
+				
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	
+	}
+	
+	public function in_complete_status_put()
+	{
+		$error =  false;
+		$errorText = '';
+		$result = '';
+		$response_code = '';
+		try
+		{
+			$userdata=json_decode(file_get_contents('php://input'));
+			if(!is_object($userdata))
+			{
+				$userdata =(object)$this->put();
+			}
+			
+			$input_array=array(
+			  'invoice_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'status_id'=>array('required'=>1,'exp'=>$this->Basic_model->regularexp['numeric']),
+			  'note'=>array('required'=>0,'exp'=>''),
+			);
+			
+			$check_input=$this->Rest_model->Check_parameters($input_array,$userdata);
+			if(!$check_input['error'])
+			{
+				$post_data=$check_input['result']['input_array'];
+				$insert_response=$this->Sop_model->InCompleteOrderUpdateStatus($post_data);
+   			    if($insert_response['error'])
+			     {
+				    $error=true;
+					$errorText=$insert_response['errortext'];
+			     }
+			     else
+			     {
+				   $invoice_id=$post_data['invoice_id'];
+				   $order_data=$this->Sop_model->GetProductOrderDetailsOnId($invoice_id);
+				   $result['successMessage']='Data successfully updated';
+				   $result['order_details']=$order_data;
+				   $response_code='200';
+			     }
+				
+				
+				
+			}
+			else
+			{
+				$error =  true;
+				$errorText .=  $check_input['errortext'].'<br>';
+				$response_code='400';
+			}
+			
+			
+		}
+		catch(Exception $e)
+		{
+			$error = true;
+			$errortext = $e->getMessage();
+		}
+		
+		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
+	
+	}
+	
+	
+}

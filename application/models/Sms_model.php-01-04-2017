@@ -1,0 +1,83 @@
+<?php
+class Sms_model extends CI_Model
+{
+
+
+public function getSenderId()
+  {
+	  $sender_name='';
+	  $short_name=$this->Basic_model->short_name;
+	  if(strlen($short_name)=='6')
+	  {
+		   $sender_name=$short_name;
+	  }
+	  else
+	  {
+		 $srt_length=strlen($short_name);
+		 $rem_digits=6-$srt_length;
+		 $result = substr('URCIBT', 0, $rem_digits); 
+		 $sender_name=$short_name. $result;
+	  }
+	  
+	  return  $sender_name;
+	  
+  }
+
+
+
+ public function send_sms($mobile_no,$final_message)
+ {
+	 $error=false;
+	 $errortext='';
+	 $result='';
+	 
+	 $authKey = "109557AUi4WmMKY957075651";
+	 $mobileNumber = $mobile_no;
+	 $senderId = $this->getSenderId();
+	 $message = urlencode($final_message);
+	 
+	 $route = "4";
+		//Prepare you post parameters
+		$postData = array(
+			'authkey' => $authKey,
+			'mobiles' => $mobileNumber,
+			'message' => $message,
+			'sender' => $senderId,
+			'route' => $route
+		);
+		
+	$url="https://control.msg91.com/api/sendhttp.php";
+	
+	$ch = curl_init();
+		curl_setopt_array($ch, array(
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => $postData
+			//,CURLOPT_FOLLOWLOCATION => true
+		));
+		
+	//Ignore SSL certificate verification
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+	
+	
+	//get response
+	$output = curl_exec($ch);
+	
+	//Print error if any
+	if(curl_errno($ch))
+	{
+		$error=true;
+		$errortext=curl_error($ch);
+	}
+	
+	curl_close($ch);	
+   	
+	return array('error' => $error, 'errortext' => $errortext, 'result' => $result); 
+	 
+ }
+ 	
+	
+}
+?>

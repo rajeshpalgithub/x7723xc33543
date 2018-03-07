@@ -212,6 +212,7 @@ class User_model extends CI_Model
 		 $column_role_users_country= $this->Tables_model->role_users('role_users_country');
 		 $column_role_users_postal_code= $this->Tables_model->role_users('role_users_postal_code');
 		 $column_role_users_is_active= $this->Tables_model->role_users('role_users_is_active');
+		 $column_role_users_is_default= $this->Tables_model->role_users('role_users_is_default');
 		 $column_role_users_login_id= $this->Tables_model->role_users('role_users_login_id');
 		 
 		 
@@ -308,6 +309,7 @@ class User_model extends CI_Model
 						 $column_role_users_report_to=>$report_to_id,
 						 $column_role_users_name=>$user_name,
 						 $column_role_users_login_id=>$login_id,
+						 $column_role_users_is_default=>1,
 				);
 				
 				$this->db->insert($table_role_users,$user_arr);

@@ -288,4 +288,6 @@ class Login extends REST_Controller {
 		
 		$this->response( array('error'=>$error,'errortext'=>explode("<br>",rtrim($errorText,"<br>")),'result'=>$result),$response_code);
 	}
+
+	
 }

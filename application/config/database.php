@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => '182.50.133.174',
+	'hostname' => '0.0.0.0',
 	'username' => 'restcrm',
-	'password' => 'Tanmoy123!',
-	'database' => 'restcrm',
+	'password' => 'xxxxxx',
+	'database' => 'xxxxxx',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
